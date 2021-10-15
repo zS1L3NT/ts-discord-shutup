@@ -22,7 +22,7 @@ module.exports = {
 		),
 	execute: async helper => {
 		if (helper.interaction.user.id !== config.discord.dev_id) {
-			helper.respond(new EmbedResponse(
+			return helper.respond(new EmbedResponse(
 				Emoji.BAD,
 				"Only the developer can deny messaging"
 			))
@@ -31,7 +31,14 @@ module.exports = {
 		const user = helper.user("user", true)!
 		const message = helper.string("message", true)!
 
-		if (helper.cache.restrictions.find(r => r.value.user_id === user.id)) {
+		if (user.id === config.discord.dev_id || user.id === config.discord.bot_id) {
+			return helper.respond(new EmbedResponse(
+				Emoji.BAD,
+				"Cannot deny this user of messaging"
+			))
+		}
+
+		if (helper.cache.getRestrictions().find(r => r.value.user_id === user.id)) {
 			return helper.respond(new EmbedResponse(
 				Emoji.BAD,
 				"This user is already denied messaging"
@@ -42,7 +49,8 @@ module.exports = {
 		await doc.set({
 				id: doc.id,
 				user_id: user.id,
-				message
+				message,
+				expires: null
 			})
 		helper.respond(new EmbedResponse(
 			Emoji.GOOD,

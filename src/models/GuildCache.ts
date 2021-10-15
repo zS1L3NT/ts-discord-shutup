@@ -12,7 +12,7 @@ export default class GuildCache {
 	public bot: Client
 	public guild: Guild
 	public ref: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>
-	public restrictions: Restriction[] = []
+	private restrictions: Restriction[] = []
 	public alerts: Alert[] = []
 	private document: Document = Document.getEmpty()
 
@@ -41,5 +41,16 @@ export default class GuildCache {
 		return restriction_id
 			? restrictions.doc(restriction_id)
 			: restrictions.doc()
+	}
+
+	public getRestrictions() {
+		return this.restrictions
+			.filter(restriction => {
+				if (restriction.value.expires && Date.now() > restriction.value.expires) {
+					this.getRestrictionDoc(restriction.value.id).delete()
+					return false
+				}
+				return true
+			})
 	}
 }

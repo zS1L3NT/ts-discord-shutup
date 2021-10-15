@@ -23,7 +23,7 @@ module.exports = {
 		}
 
 		const user = helper.user("user", true)!
-		const restriction = helper.cache.restrictions.find(r => r.value.user_id === user.id)
+		const restriction = helper.cache.getRestrictions().find(r => r.value.user_id === user.id)
 
 		if (!restriction) {
 			return helper.respond(new EmbedResponse(

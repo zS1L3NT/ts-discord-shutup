@@ -3,9 +3,9 @@ import { iMessageFile } from "../utilities/BotSetupHelper"
 
 module.exports = {
 	condition: helper =>
-		!!helper.cache.restrictions.find(r => r.value.user_id === helper.message.author.id),
+		!!helper.cache.getRestrictions().find(r => r.value.user_id === helper.message.author.id),
 	execute: async helper => {
-		const restriction = helper.cache.restrictions.find(r => r.value.user_id === helper.message.author.id)!
+		const restriction = helper.cache.getRestrictions().find(r => r.value.user_id === helper.message.author.id)!
 		helper.message.delete()
 
 		const alert = helper.cache.alerts.find(alert => alert.user_id)
@@ -27,7 +27,8 @@ module.exports = {
 							.setTitle(`Shut Up, ${member.displayName}`)
 							.setColor("#FF0000")
 							.setDescription(`${restriction.value.message}\nAuto-deletes if ${member.displayName} shuts up for 10 seconds`)
-					]
+					],
+					content: `Shut up, ${member.displayName}`
 				}),
 				timeout: setTimeout(() => {
 					const alert = helper.cache.alerts.find(alert => alert.user_id)
