@@ -24,7 +24,10 @@ export default class BotCache {
 		return new Promise<GuildCache>((resolve, reject) => {
 			const cache = this.guilds.get(guild.id)
 			if (!cache) {
-				this.guilds.set(guild.id, new GuildCache(this.bot, guild, this.ref.doc(guild.id), resolve))
+				this.guilds.set(
+					guild.id,
+					new GuildCache(this.bot, guild, this.ref.doc(guild.id), resolve)
+				)
 
 				this.ref
 					.doc(guild.id)

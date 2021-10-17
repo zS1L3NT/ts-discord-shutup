@@ -35,22 +35,23 @@ export default class GuildCache {
 			this.restrictions = snaps.docs.map(doc => new Restriction(doc.data() as iRestriction))
 		})
 	}
-	
-	public getRestrictionDoc(restriction_id?: string): FirebaseFirestore.DocumentReference<iRestriction> {
-		const restrictions = this.ref.collection("restrictions") as FirebaseFirestore.CollectionReference<iRestriction>
-		return restriction_id
-			? restrictions.doc(restriction_id)
-			: restrictions.doc()
+
+	public getRestrictionDoc(
+		restriction_id?: string
+	): FirebaseFirestore.DocumentReference<iRestriction> {
+		const restrictions = this.ref.collection(
+			"restrictions"
+		) as FirebaseFirestore.CollectionReference<iRestriction>
+		return restriction_id ? restrictions.doc(restriction_id) : restrictions.doc()
 	}
 
 	public getRestrictions() {
-		return this.restrictions
-			.filter(restriction => {
-				if (restriction.value.expires && Date.now() > restriction.value.expires) {
-					this.getRestrictionDoc(restriction.value.id).delete()
-					return false
-				}
-				return true
-			})
+		return this.restrictions.filter(restriction => {
+			if (restriction.value.expires && Date.now() > restriction.value.expires) {
+				this.getRestrictionDoc(restriction.value.id).delete()
+				return false
+			}
+			return true
+		})
 	}
 }

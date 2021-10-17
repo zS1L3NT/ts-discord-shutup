@@ -34,7 +34,9 @@ bot.on("ready", async () => {
 		try {
 			await botSetupHelper.deploySlashCommands(guild)
 		} catch (err) {
-			console.error(`${tag} ❌ Couldn't get Slash Command permission for Guild(${guild.name})`)
+			console.error(
+				`${tag} ❌ Couldn't get Slash Command permission for Guild(${guild.name})`
+			)
 			guild.leave()
 			continue
 		}
@@ -55,18 +57,32 @@ bot.on("messageDelete", async message => {
 
 	helper.cache.alerts = helper.cache.alerts.filter(alert_ => alert_.user_id !== alert.user_id)
 
-	const doc = helper.cache.getRestrictionDoc()
-	await doc.set({
-		id: doc.id,
-		user_id: user_id,
-		message: "You were muted for deleting the bot's mute message",
-		expires: Date.now() + 5 * 60 * 1000
-	})
+	const restriction = helper.cache.getRestrictions().find(r => r.value.user_id === user_id)
+	if (restriction) {
+		helper.respond(
+			new EmbedResponse(
+				Emoji.BAD,
+				"Your ban doesn't end if you delete this message"
+			),
+			5000
+		)
+	} else {
+		const doc = helper.cache.getRestrictionDoc()
+		await doc.set({
+			id: doc.id,
+			user_id: user_id,
+			message: "You were muted for deleting the bot's mute message",
+			expires: Date.now() + 5 * 60 * 1000
+		})
 
-	helper.respond(new EmbedResponse(
-		Emoji.BAD,
-		"You will be muted for 5 minutes for deleting this message"
-	), 5000)
+		helper.respond(
+			new EmbedResponse(
+				Emoji.BAD,
+				"You will be muted for 5 minutes for deleting this message"
+			),
+			5000
+		)
+	}
 })
 
 bot.on("messageUpdate", async (_, message) => {

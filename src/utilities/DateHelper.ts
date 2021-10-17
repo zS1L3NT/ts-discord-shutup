@@ -1,3 +1,5 @@
+import { DateTime } from "luxon"
+
 export default class DateHelper {
 	private readonly time: number
 	public static days_of_week: {
@@ -32,7 +34,7 @@ export default class DateHelper {
 	}
 
 	public static verify(day: number, month: number, year: number, hour: number, minute: number) {
-		const now = new Date()
+		const now = DateTime.now()
 
 		if (this.longer_months.includes(month)) {
 			if (day > 31) {
@@ -53,10 +55,10 @@ export default class DateHelper {
 			}
 		}
 
-		if (year < now.getFullYear()) {
+		if (year < now.year) {
 			throw new Error("Year must not be in the past")
 		}
-		if (year - now.getFullYear() > 5) {
+		if (year - now.year > 5) {
 			throw new Error("Year must not be more than 5 years ahead")
 		}
 
@@ -68,11 +70,16 @@ export default class DateHelper {
 			throw new Error("Minute must not exceed 59")
 		}
 
-		// Handle timezone change
-		if (new Date().getUTCHours() === new Date().getHours()) {
-			return new Date(new Date(year, month, day, hour, minute).getTime() - 28800000)
-		}
-		return new Date(year, month, day, hour, minute)
+		return DateTime.fromObject(
+			{
+				year,
+				month: month + 1,
+				day,
+				hour,
+				minute
+			},
+			{ zone: "Asia/Singapore" }
+		)
 	}
 
 	public getTimeLeft() {
@@ -110,30 +117,7 @@ export default class DateHelper {
 	}
 
 	public getDate() {
-		const date = new Date(this.time)
-		let localDate: Date
-		if (date.getUTCHours() === date.getHours()) {
-			// Wrong timezone, in UK
-			localDate = new Date(this.time + 28800000)
-		} else {
-			localDate = date
-		}
-
-		const day_of_week = DateHelper.days_of_week[localDate.toDateString().slice(0, 3)]
-		const date_in_month = localDate.getDate()
-		const name_of_month = DateHelper.name_of_months[localDate.getMonth()]
-		const year = localDate.getFullYear()
-
-		const hours = localDate.getHours()
-		const minutes = localDate.getMinutes()
-
-		const time =
-			hours >= 12
-				? hours === 12
-					? `12:${minutes.toString().padStart(2, "0")}pm`
-					: `${(hours - 12).toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}pm`
-				: `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}am`
-
-		return `${day_of_week}, ${date_in_month} ${name_of_month} ${year} at ${time}`
+		const date = DateTime.fromMillis(this.time).setZone("Asia/Singapore")
+		return date.toFormat("cccc, dd LLLL yyyy 'at' t")
 	}
 }

@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from "@discordjs/builders"
-import { iInteractionFile } from "../utilities/BotSetupHelper";
-import EmbedResponse, { Emoji } from "../utilities/EmbedResponse";
+import { iInteractionFile } from "../utilities/BotSetupHelper"
+import EmbedResponse, { Emoji } from "../utilities/EmbedResponse"
 
 const config = require("../../config.json")
 
@@ -9,10 +9,7 @@ module.exports = {
 		.setName("deny")
 		.setDescription("Make the bot deny messaging to a specific user")
 		.addUserOption(option =>
-			option
-				.setName("user")
-				.setDescription("User to deny messaging to")
-				.setRequired(true)
+			option.setName("user").setDescription("User to deny messaging to").setRequired(true)
 		)
 		.addStringOption(option =>
 			option
@@ -22,39 +19,33 @@ module.exports = {
 		),
 	execute: async helper => {
 		if (helper.interaction.user.id !== config.discord.dev_id) {
-			return helper.respond(new EmbedResponse(
-				Emoji.BAD,
-				"Only the developer can deny messaging"
-			))
+			return helper.respond(
+				new EmbedResponse(Emoji.BAD, "Only the developer can deny messaging")
+			)
 		}
 
-		const user = helper.user("user", true)!
-		const message = helper.string("message", true)!
+		const user = helper.user("user")!
+		const message = helper.string("message")!
 
 		if (user.id === config.discord.dev_id || user.id === config.discord.bot_id) {
-			return helper.respond(new EmbedResponse(
-				Emoji.BAD,
-				"Cannot deny this user of messaging"
-			))
+			return helper.respond(
+				new EmbedResponse(Emoji.BAD, "Cannot deny this user of messaging")
+			)
 		}
 
 		if (helper.cache.getRestrictions().find(r => r.value.user_id === user.id)) {
-			return helper.respond(new EmbedResponse(
-				Emoji.BAD,
-				"This user is already denied messaging"
-			))
+			return helper.respond(
+				new EmbedResponse(Emoji.BAD, "This user is already denied messaging")
+			)
 		}
 
 		const doc = helper.cache.getRestrictionDoc()
 		await doc.set({
-				id: doc.id,
-				user_id: user.id,
-				message,
-				expires: null
-			})
-		helper.respond(new EmbedResponse(
-			Emoji.GOOD,
-			"User denied messaging"
-		))
+			id: doc.id,
+			user_id: user.id,
+			message,
+			expires: null
+		})
+		helper.respond(new EmbedResponse(Emoji.GOOD, "User denied messaging"))
 	}
 } as iInteractionFile

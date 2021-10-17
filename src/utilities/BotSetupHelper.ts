@@ -129,8 +129,10 @@ export default class BotSetupHelper {
 		try {
 			await deployer.deploy()
 		} catch (err) {
-			// @ts-ignore
-			console.error(`Failed to deploy slash commands for Guild(${guild.name}): ${err.message}`)
+			console.error(
+				// @ts-ignore
+				`Failed to deploy slash commands for Guild(${guild.name}): ${err.message}`
+			)
 		}
 	}
 
@@ -138,7 +140,9 @@ export default class BotSetupHelper {
 		let fileNames: string[]
 
 		try {
-			fileNames = fs.readdirSync(path.join(__dirname, "../messages")).filter(f => BotSetupHelper.isFile(f))
+			fileNames = fs
+				.readdirSync(path.join(__dirname, "../messages"))
+				.filter(f => BotSetupHelper.isFile(f))
 		} catch {
 			return
 		}
@@ -160,7 +164,9 @@ export default class BotSetupHelper {
 
 		// Slash subcommands
 		for (const interactionFolderName of units.filter(f => !BotSetupHelper.isFile(f))) {
-			const interactionFileNames = fs.readdirSync(path.join(__dirname, `../commands/${interactionFolderName}`))
+			const interactionFileNames = fs.readdirSync(
+				path.join(__dirname, `../commands/${interactionFolderName}`)
+			)
 			const command = new SlashCommandBuilder()
 				.setName(interactionFolderName)
 				.setDescription(`Commands for ${interactionFolderName}`)
@@ -181,7 +187,8 @@ export default class BotSetupHelper {
 
 		// Slash commands
 		for (const interactionFileNames of units.filter(f => BotSetupHelper.isFile(f))) {
-			const iInteractionFile = require(`../commands/${interactionFileNames}`) as iInteractionFile
+			const iInteractionFile =
+				require(`../commands/${interactionFileNames}`) as iInteractionFile
 			this.interactionFiles.set(iInteractionFile.data.name, iInteractionFile)
 		}
 	}
@@ -190,7 +197,9 @@ export default class BotSetupHelper {
 		let fileNames: string[]
 
 		try {
-			fileNames = fs.readdirSync(path.join(__dirname, "../buttons")).filter(f => BotSetupHelper.isFile(f))
+			fileNames = fs
+				.readdirSync(path.join(__dirname, "../buttons"))
+				.filter(f => BotSetupHelper.isFile(f))
 		} catch {
 			return
 		}
@@ -205,7 +214,9 @@ export default class BotSetupHelper {
 		let fileNames: string[]
 
 		try {
-			fileNames = fs.readdirSync(path.join(__dirname, "../menus")).filter(f => BotSetupHelper.isFile(f))
+			fileNames = fs
+				.readdirSync(path.join(__dirname, "../menus"))
+				.filter(f => BotSetupHelper.isFile(f))
 		} catch {
 			return
 		}
