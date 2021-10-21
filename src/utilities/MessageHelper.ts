@@ -19,11 +19,11 @@ export default class MessageHelper {
 	}
 
 	public matchOnly(command: string) {
-		return this.match(`^${command}(?:(?= *$)(?!\\w+))`)
+		return !!this.match(`^${command}(?:(?= *$)(?!\\w+))`)
 	}
 
 	public matchMore(command: string) {
-		return this.match(`^${command}(?:(?= *)(?!\\w+))`)
+		return !!this.match(`^${command}(?:(?= *)(?!\\w+))`)
 	}
 
 	public clearAfter(ms: number) {
@@ -33,14 +33,17 @@ export default class MessageHelper {
 	}
 
 	public reactSuccess() {
-		void this.message.react("✅")
+		this.message.react("✅").catch(() => {})
 	}
 
 	public reactFailure() {
-		void this.message.react("❌")
+		this.message.react("❌").catch(() => {})
 	}
 
-	public respond(options: MessagePayload | InteractionReplyOptions | EmbedResponse, ms: number) {
+	public respond(
+		options: MessagePayload | InteractionReplyOptions | EmbedResponse,
+		ms: number
+	) {
 		let message: Promise<Message>
 
 		if (options instanceof EmbedResponse) {
@@ -48,12 +51,16 @@ export default class MessageHelper {
 				embeds: [options.create()]
 			})
 		} else {
-			message = this.message.channel.send(options as MessagePayload | InteractionReplyOptions)
+			message = this.message.channel.send(
+				options as MessagePayload | InteractionReplyOptions
+			)
 		}
 
-		message.then(async temporary => {
-			await time(ms)
-			await temporary.delete().catch(() => {})
-		})
+		message
+			.then(async temporary => {
+				await time(ms)
+				await temporary.delete().catch(() => {})
+			})
+			.catch(() => {})
 	}
 }

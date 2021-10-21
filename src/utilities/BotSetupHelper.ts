@@ -1,12 +1,12 @@
-import { SlashCommandBuilder, SlashCommandSubcommandBuilder } from "@discordjs/builders"
 import { Client, Collection, Guild } from "discord.js"
+import BotCache from "../models/BotCache"
+import { SlashCommandBuilder, SlashCommandSubcommandBuilder } from "@discordjs/builders"
+import InteractionHelper from "./InteractionHelper"
+import MessageHelper from "./MessageHelper"
+import ButtonHelper from "./ButtonHelper"
+import MenuHelper from "./MenuHelper"
 import fs from "fs"
 import path from "path"
-import BotCache from "../models/BotCache"
-import ButtonHelper from "./ButtonHelper"
-import InteractionHelper from "./InteractionHelper"
-import MenuHelper from "./MenuHelper"
-import MessageHelper from "./MessageHelper"
 import SlashCommandDeployer from "./SlashCommandDeployer"
 
 export default class BotSetupHelper {
@@ -39,6 +39,7 @@ export default class BotSetupHelper {
 			try {
 				for (const messageFile of this.messageFiles) {
 					if (messageFile.condition(helper)) {
+						message.react("⌛").catch(() => {})
 						await messageFile.execute(helper)
 						break
 					}
