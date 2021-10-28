@@ -47,5 +47,8 @@ module.exports = {
 			expires: null
 		})
 		helper.respond(new EmbedResponse(Emoji.GOOD, "User denied messaging"))
+
+		const member = await helper.cache.guild.members.fetch(user.id)
+		await member.voice.disconnect()
 	}
 } as iInteractionFile

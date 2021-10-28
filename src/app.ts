@@ -8,7 +8,7 @@ const config = require("../config.json")
 
 // region Initialize bot
 const bot = new Client({
-	intents: [Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILDS]
+	intents: [Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILDS]
 })
 const botSetupHelper = new BotSetupHelper(bot)
 const { cache: botCache } = botSetupHelper
@@ -105,5 +105,16 @@ bot.on("messageUpdate", async (_, message) => {
 					)
 			]
 		})
+	}
+})
+
+bot.on("voiceStateUpdate", async (_, after) => {
+	if (after.channel) {
+		const cache = await botCache.getGuildCache(after.guild)
+		const restriction = cache.getRestrictions().find(r => r.value.user_id === after.member?.id)
+
+		if (restriction) {
+			after.member?.voice.disconnect()
+		}
 	}
 })
