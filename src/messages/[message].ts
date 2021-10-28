@@ -10,11 +10,11 @@ module.exports = {
 			.find(r => r.value.user_id === helper.message.author.id)!
 		helper.message.delete()
 
-		const alert = helper.cache.alerts.find(alert => alert.user_id)
+		const alert = helper.cache.alerts.find(a => a.user_id === helper.message.author.id)
 		if (alert) {
 			clearTimeout(alert.timeout)
 			alert.timeout = setTimeout(() => {
-				const alert = helper.cache.alerts.find(alert => alert.user_id)
+				const alert = helper.cache.alerts.find(a => a.user_id === helper.message.author.id)
 				alert?.message.delete().catch(() => {})
 				helper.cache.alerts = helper.cache.alerts.filter(
 					alert_ => alert_.user_id !== alert?.user_id
@@ -37,7 +37,7 @@ module.exports = {
 					content: `Shut up, ${member.displayName}`
 				}),
 				timeout: setTimeout(() => {
-					const alert = helper.cache.alerts.find(alert => alert.user_id)
+					const alert = helper.cache.alerts.find(a => a.user_id === helper.message.author.id)
 					alert?.message.delete().catch(() => {})
 					helper.cache.alerts = helper.cache.alerts.filter(
 						alert_ => alert_.user_id !== alert?.user_id
