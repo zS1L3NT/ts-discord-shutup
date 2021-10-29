@@ -1,4 +1,6 @@
-export interface iDocument {}
+export interface iDocument {
+	permitted: string[]
+}
 
 export default class Document {
 	public value: iDocument
@@ -8,6 +10,8 @@ export default class Document {
 	}
 
 	public static getEmpty(): Document {
-		return new Document({})
+		return new Document({
+			permitted: []
+		})
 	}
 }

@@ -13,7 +13,9 @@ module.exports = {
 		),
 	execute: async helper => {
 		if (helper.interaction.user.id !== config.discord.dev_id) {
-			return helper.respond(new EmbedResponse(Emoji.BAD, "Only the developer can allow messaging"))
+			return helper.respond(
+				new EmbedResponse(Emoji.BAD, "Only the developer can allow messaging")
+			)
 		}
 
 		const user = helper.user("user")!

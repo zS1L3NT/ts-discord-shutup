@@ -1,6 +1,9 @@
 import { Client, Guild, Message } from "discord.js"
+import admin from "firebase-admin"
 import Document, { iDocument } from "./Document"
 import Restriction, { iRestriction } from "./Restriction"
+
+const config = require("../../config.json")
 
 interface Alert {
 	user_id: string
@@ -53,5 +56,25 @@ export default class GuildCache {
 			}
 			return true
 		})
+	}
+
+	public getPermitted(): string[] {
+		return [config.discord.dev_id, ...this.document.value.permitted]
+	}
+
+	public async addPermitted(userId: string) {
+		this.document.value.permitted = [userId, ...this.document.value.permitted]
+		await this.ref.set(
+			{ permitted: admin.firestore.FieldValue.arrayUnion(userId) },
+			{ merge: true }
+		)
+	}
+
+	public async removePermitted(userId: string) {
+		this.document.value.permitted = this.document.value.permitted.filter(p => p !== userId)
+		await this.ref.set(
+			{ permitted: admin.firestore.FieldValue.arrayRemove(userId) },
+			{ merge: true }
+		)
 	}
 }
