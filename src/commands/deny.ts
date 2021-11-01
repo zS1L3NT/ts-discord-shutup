@@ -18,9 +18,9 @@ module.exports = {
 				.setRequired(true)
 		),
 	execute: async helper => {
-		if (helper.interaction.user.id !== config.discord.dev_id) {
+		if (!helper.cache.getPermitted().includes(helper.interaction.user.id)) {
 			return helper.respond(
-				new EmbedResponse(Emoji.BAD, "Only the developer can deny messaging")
+				new EmbedResponse(Emoji.BAD, "You are not permitted to deny messaging")
 			)
 		}
 

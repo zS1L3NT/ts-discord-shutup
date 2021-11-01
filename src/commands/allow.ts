@@ -12,9 +12,9 @@ module.exports = {
 			option.setName("user").setDescription("User to allow messaging to").setRequired(true)
 		),
 	execute: async helper => {
-		if (helper.interaction.user.id !== config.discord.dev_id) {
+		if (!helper.cache.getPermitted().includes(helper.interaction.user.id)) {
 			return helper.respond(
-				new EmbedResponse(Emoji.BAD, "Only the developer can allow messaging")
+				new EmbedResponse(Emoji.BAD, "You are not permitted to allow messaging")
 			)
 		}
 
