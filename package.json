@@ -9,10 +9,11 @@
 		"dev": "ts-node src/app.ts"
 	},
 	"dependencies": {
-		"@discordjs/builders": "^0.6.0",
+		"@discordjs/builders": "0.8.2",
 		"@discordjs/rest": "^0.1.0-canary.0",
 		"discord-api-types": "^0.23.1",
 		"discord.js": "^13.2.0",
+		"discordjs-nova": "../ts-npm-discordjs-nova/discordjs-nova-1.0.2.tgz",
 		"firebase-admin": "^10.0.0",
 		"luxon": "^2.0.2",
 		"node-fetch": "^3.0.0"
