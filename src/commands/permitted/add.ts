@@ -1,10 +1,10 @@
-import { SlashCommandSubcommandBuilder } from "@discordjs/builders"
-import { iInteractionSubcommandFile } from "../../utilities/BotSetupHelper"
-import EmbedResponse, { Emoji } from "../../utilities/EmbedResponse"
+import { Emoji, iInteractionSubcommandFile, ResponseBuilder } from "discordjs-nova"
+import Entry from "../../models/Entry"
+import GuildCache from "../../models/GuildCache"
 
 const config = require("../../../config.json")
 
-module.exports = {
+const file: iInteractionSubcommandFile<Entry, GuildCache> = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("add")
 		.setDescription("Adds a user to the list of permitted users")
@@ -14,18 +14,20 @@ module.exports = {
 	execute: async helper => {
 		if (helper.interaction.user.id !== config.discord.dev_id) {
 			return helper.respond(
-				new EmbedResponse(Emoji.BAD, "Only the developer can change permitted users")
+				new ResponseBuilder(Emoji.BAD, "Only the developer can change permitted users")
 			)
 		}
 
 		const user = helper.user("user")!
 		if (helper.cache.getPermitted().includes(user.id)) {
 			return helper.respond(
-				new EmbedResponse(Emoji.BAD, "This user is already permitted")
+				new ResponseBuilder(Emoji.BAD, "This user is already permitted")
 			)
 		}
 
 		await helper.cache.addPermitted(user.id)
-		helper.respond(new EmbedResponse(Emoji.GOOD, "Added permissions for user to allow and deny messaging"))
+		helper.respond(new ResponseBuilder(Emoji.GOOD, "Added permissions for user to allow and deny messaging"))
 	}
-} as iInteractionSubcommandFile
+}
+
+export default file

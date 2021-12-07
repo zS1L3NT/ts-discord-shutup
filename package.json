@@ -1,7 +1,7 @@
 {
-	"name": "",
+	"name": "ts-discord-shutup",
 	"version": "1.0.0",
-	"description": "",
+	"description": "ShutUp Bot",
 	"main": "build/app.js",
 	"author": "zS1L3NT",
 	"scripts": {
@@ -9,23 +9,17 @@
 		"dev": "ts-node src/app.ts"
 	},
 	"dependencies": {
-		"@discordjs/builders": "0.8.2",
-		"@discordjs/rest": "^0.1.0-canary.0",
-		"discord-api-types": "^0.23.1",
-		"discord.js": "^13.2.0",
-		"discordjs-nova": "../ts-npm-discordjs-nova/discordjs-nova-1.0.2.tgz",
+		"discord.js": "^13.3.1",
+		"discordjs-nova": "../ts-npm-discordjs-nova/discordjs-nova-1.0.8.tgz",
 		"firebase-admin": "^10.0.0",
-		"luxon": "^2.0.2",
-		"node-fetch": "^3.0.0"
+		"luxon": "^2.1.1",
+		"node-fetch": "^3.1.0"
 	},
 	"devDependencies": {
-		"@types/luxon": "^2.0.5",
-		"@types/node": "^16.9.2",
+		"@types/luxon": "^2.0.7",
+		"@types/node": "^16.11.12",
 		"@types/node-fetch": "^3.0.3",
-		"@typescript-eslint/eslint-plugin": "^4.31.2",
-		"@typescript-eslint/parser": "^4.31.2",
-		"eslint": "^7.32.0",
-		"ts-node": "^10.2.1",
-		"typescript": "^4.4.3"
+		"ts-node": "^10.4.0",
+		"typescript": "^4.5.2"
 	}
 }

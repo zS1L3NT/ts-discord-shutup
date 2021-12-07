@@ -1,6 +1,7 @@
-import { Client, Guild, Message } from "discord.js"
+import { Message } from "discord.js"
+import { BaseGuildCache } from "discordjs-nova"
 import admin from "firebase-admin"
-import Document, { iDocument } from "./Document"
+import Entry from "./Entry"
 import Restriction, { iRestriction } from "./Restriction"
 
 const config = require("../../config.json")
@@ -11,26 +12,14 @@ interface Alert {
 	timeout: NodeJS.Timeout
 }
 
-export default class GuildCache {
-	public bot: Client
-	public guild: Guild
-	public ref: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>
+export default class GuildCache extends BaseGuildCache<Entry, GuildCache> {
 	private restrictions: Restriction[] = []
 	public alerts: Alert[] = []
-	private document: Document = Document.getEmpty()
 
-	public constructor(
-		bot: Client,
-		guild: Guild,
-		ref: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>,
-		resolve: (localCache: GuildCache) => void
-	) {
-		this.bot = bot
-		this.guild = guild
-		this.ref = ref
+	public resolve(resolve: (cache: GuildCache) => void) {
 		this.ref.onSnapshot(snap => {
 			if (snap.exists) {
-				this.document = new Document(snap.data() as iDocument)
+				this.entry = snap.data() as Entry
 				resolve(this)
 			}
 		})
@@ -38,6 +27,9 @@ export default class GuildCache {
 			this.restrictions = snaps.docs.map(doc => new Restriction(doc.data() as iRestriction))
 		})
 	}
+
+	public onConstruct() {}
+	public updateMinutely(debug: number) {}
 
 	public getRestrictionDoc(
 		restriction_id?: string
@@ -59,21 +51,27 @@ export default class GuildCache {
 	}
 
 	public getPermitted(): string[] {
-		return [config.discord.dev_id, ...this.document.value.permitted]
+		return [config.discord.dev_id, ...this.entry.permitted]
 	}
 
 	public async addPermitted(userId: string) {
-		this.document.value.permitted = [userId, ...this.document.value.permitted]
+		this.entry.permitted = [userId, ...this.entry.permitted]
 		await this.ref.set(
-			{ permitted: admin.firestore.FieldValue.arrayUnion(userId) },
+			{
+				// @ts-ignore
+				permitted: admin.firestore.FieldValue.arrayUnion(userId)
+			},
 			{ merge: true }
 		)
 	}
 
 	public async removePermitted(userId: string) {
-		this.document.value.permitted = this.document.value.permitted.filter(p => p !== userId)
+		this.entry.permitted = this.entry.permitted.filter(p => p !== userId)
 		await this.ref.set(
-			{ permitted: admin.firestore.FieldValue.arrayRemove(userId) },
+			{
+				// @ts-ignore
+				permitted: admin.firestore.FieldValue.arrayRemove(userId)
+			},
 			{ merge: true }
 		)
 	}
