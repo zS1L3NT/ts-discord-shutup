@@ -1,26 +1,53 @@
-import { SlashCommandBuilder } from "@discordjs/builders"
-import { iInteractionFile } from "../utilities/BotSetupHelper"
-import EmbedResponse, { Emoji } from "../utilities/EmbedResponse"
+import Entry from "../models/Entry"
+import GuildCache from "../models/GuildCache"
+import { Emoji, iInteractionFile, ResponseBuilder } from "discordjs-nova"
 
 const config = require("../../config.json")
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName("deny")
-		.setDescription("Make the bot deny messaging to a specific user")
-		.addUserOption(option =>
-			option.setName("user").setDescription("User to deny messaging to").setRequired(true)
-		)
-		.addStringOption(option =>
-			option
-				.setName("message")
-				.setDescription("Message to say when the user is denied messaging")
-				.setRequired(true)
-		),
+const file: iInteractionFile<Entry, GuildCache> = {
+	defer: true,
+	ephemeral: true,
+	data: {
+		name: "deny",
+		description: {
+			slash: "Make the bot deny messaging to a specific user",
+			help: [
+				"**User must be permitted to use this command**",
+				"Deny a user messaging or voice calls server-wide"
+			].join("\n")
+		},
+		options: [
+			{
+				name: "user",
+				description: {
+					slash: "User to deny messaging to",
+					help: "User to deny messaging to"
+				},
+				type: "user",
+				requirements: [
+					"User that:",
+					"(1) Me",
+					"(2) The developer",
+					"(3) Already denied messaging"
+				].join("\n"),
+				required: true
+			},
+			{
+				name: "message",
+				description: {
+					slash: "Message to say when the user is denied messaging",
+					help: "Message to say when the user is denied messaging"
+				},
+				type: "string",
+				requirements: "Text",
+				required: true
+			}
+		]
+	},
 	execute: async helper => {
 		if (!helper.cache.getPermitted().includes(helper.interaction.user.id)) {
 			return helper.respond(
-				new EmbedResponse(Emoji.BAD, "You are not permitted to deny messaging")
+				new ResponseBuilder(Emoji.BAD, "You are not permitted to deny messaging")
 			)
 		}
 
@@ -29,13 +56,13 @@ module.exports = {
 
 		if (user.id === config.discord.dev_id || user.id === config.discord.bot_id) {
 			return helper.respond(
-				new EmbedResponse(Emoji.BAD, "Cannot deny this user of messaging")
+				new ResponseBuilder(Emoji.BAD, "Cannot deny this user of messaging")
 			)
 		}
 
 		if (helper.cache.getRestrictions().find(r => r.value.user_id === user.id)) {
 			return helper.respond(
-				new EmbedResponse(Emoji.BAD, "This user is already denied messaging")
+				new ResponseBuilder(Emoji.BAD, "This user is already denied messaging")
 			)
 		}
 
@@ -46,9 +73,11 @@ module.exports = {
 			message,
 			expires: null
 		})
-		helper.respond(new EmbedResponse(Emoji.GOOD, "User denied messaging"))
+		helper.respond(new ResponseBuilder(Emoji.GOOD, "User denied messaging"))
 
 		const member = await helper.cache.guild.members.fetch(user.id)
 		await member.voice.disconnect()
 	}
-} as iInteractionFile
+}
+
+export default file

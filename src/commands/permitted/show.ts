@@ -1,10 +1,18 @@
+import Entry from "../../models/Entry"
+import GuildCache from "../../models/GuildCache"
+import { iInteractionSubcommandFile } from "discordjs-nova"
 import { MessageEmbed } from "discord.js"
-import { iInteractionSubcommandFile } from "../../utilities/BotSetupHelper"
 
-module.exports = {
-	data: new SlashCommandSubcommandBuilder()
-		.setName("show")
-		.setDescription("Adds a user to the list of permitted users"),
+const file: iInteractionSubcommandFile<Entry, GuildCache> = {
+	defer: true,
+	ephemeral: true,
+	data: {
+		name: "show",
+		description: {
+			slash: "Shows the list of permitted users",
+			help: "Show the list of permitted users"
+		}
+	},
 	execute: async helper => {
 		helper.respond({
 			embeds: [
@@ -18,4 +26,6 @@ module.exports = {
 			]
 		})
 	}
-} as iInteractionSubcommandFile
+}
+
+export default file
