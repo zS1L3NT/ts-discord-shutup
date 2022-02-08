@@ -1,120 +1,68 @@
-import { Client, Intents, Message, MessageEmbed } from "discord.js"
-import GuildCache from "./models/GuildCache"
-import BotSetupHelper from "./utilities/BotSetupHelper"
-import EmbedResponse, { Emoji } from "./utilities/EmbedResponse"
-import MessageHelper from "./utilities/MessageHelper"
+import BotCache from "./data/BotCache"
+import colors from "colors"
+import config from "./config.json"
+import GuildCache from "./data/GuildCache"
+import NovaBot from "nova-bot"
+import path from "path"
+import Tracer from "tracer"
+import { Intents } from "discord.js"
 
-const config = require("../config.json")
-
-// region Initialize bot
-const bot = new Client({
-	intents: [Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILDS]
-})
-const botSetupHelper = new BotSetupHelper(bot)
-const { cache: botCache } = botSetupHelper
-// endregion
-
-void bot.login(config.discord.token)
-bot.on("ready", async () => {
-	console.log("Logged in as ShutUp Bot#2300")
-
-	let i = 0
-	let count = bot.guilds.cache.size
-	for (const guild of bot.guilds.cache.toJSON()) {
-		const tag = `${(++i).toString().padStart(count.toString().length, "0")}/${count}`
-		let cache: GuildCache | undefined
-		try {
-			cache = await botCache.getGuildCache(guild)
-		} catch (err) {
-			console.error(`${tag} ❌ Couldn't find a Firebase Document for Guild(${guild.name})`)
-			guild.leave()
-			continue
+global.logger = Tracer.colorConsole({
+	level: process.env.LOG_LEVEL || "log",
+	format: [
+		"[{{timestamp}}] <{{path}}> {{message}}",
+		{
+			//@ts-ignore
+			alert: "[{{timestamp}}] <{{path}}, Line {{line}}> {{message}}",
+			warn: "[{{timestamp}}] <{{path}}, Line {{line}}> {{message}}",
+			error: "[{{timestamp}}] <{{path}}, Line {{line}} at {{pos}}> {{message}}"
 		}
-
-		try {
-			await botSetupHelper.deploySlashCommands(guild)
-		} catch (err) {
-			console.error(
-				`${tag} ❌ Couldn't get Slash Command permission for Guild(${guild.name})`
-			)
-			guild.leave()
-			continue
-		}
-
-		console.log(`${tag} ✅ Restored cache for Guild(${guild.name})`)
-	}
-	console.log(`✅ All bot cache restored`)
-})
-
-bot.on("messageDelete", async message => {
-	if (!message.guild) return
-	const cache = await botCache.getGuildCache(message.guild)
-	const helper = new MessageHelper(cache, message as Message)
-	const user_id = (await message.guild.fetchAuditLogs()).entries.first()!.executor!.id
-	const alert = cache.alerts.find(a => a.message.id === message.id)
-	if (!alert) return
-	if (user_id === config.discord.dev_id || user_id === config.discord.bot_id) return
-
-	helper.cache.alerts = helper.cache.alerts.filter(alert_ => alert_.user_id !== alert.user_id)
-
-	const restriction = helper.cache.getRestrictions().find(r => r.value.user_id === user_id)
-	if (restriction) {
-		helper.respond(
-			new EmbedResponse(
-				Emoji.BAD,
-				"Your ban doesn't end if you delete this message"
-			),
-			5000
-		)
-	} else {
-		const doc = helper.cache.getRestrictionDoc()
-		await doc.set({
-			id: doc.id,
-			user_id: user_id,
-			message: "You were muted for deleting the bot's mute message",
-			expires: Date.now() + 5 * 60 * 1000
-		})
-
-		helper.respond(
-			new EmbedResponse(
-				Emoji.BAD,
-				"You will be muted for 5 minutes for deleting this message"
-			),
-			5000
-		)
+	],
+	methods: ["log", "discord", "debug", "info", "alert", "warn", "error"],
+	dateformat: "dd mmm yyyy, hh:MM:sstt",
+	filters: {
+		log: colors.grey,
+		//@ts-ignore
+		discord: colors.cyan,
+		debug: colors.blue,
+		info: colors.green,
+		//@ts-ignore
+		alert: colors.yellow,
+		warn: colors.yellow.bold.italic,
+		error: colors.red.bold.italic
+	},
+	preprocess: data => {
+		data.path = data.path
+			.split("nova-bot")
+			.at(-1)!
+			.replace(/^(\/|\\)dist/, "nova-bot")
+			.replaceAll("\\", "/")
+		data.path = data.path
+			.split("ts-discord-shutup")
+			.at(-1)!
+			.replace(/^(\/|\\)(dist|src)/, "src")
+			.replaceAll("\\", "/")
 	}
 })
 
-bot.on("messageUpdate", async (_, message) => {
-	if (!message.guild) return
-	const cache = await botCache.getGuildCache(message.guild)
-	const alert = cache.alerts.find(a => a.message.id === message.id)
-	if (!alert) return
+new NovaBot({
+	name: "ShutUp#2300",
+	intents: [Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILDS],
+	directory: path.join(__dirname, "interactions"),
+	config,
+	updatesMinutely: false,
+	//@ts-ignore
+	logger,
 
-	if (message.embeds.length === 0) {
-		const restriction = cache.getRestrictions().find(r => r.value.user_id === alert.user_id)!
-		const member = await cache.guild.members.fetch(alert.user_id)
+	help: {
+		message: () =>
+			[
+				"Welcome to ShutUp!",
+				"ShutUp is a bot meant to prevent people from messaging or joining voice channels"
+			].join("\n"),
+		icon: "https://i.ibb.co/jTVKQCn/mute.png"
+	},
 
-		await message.edit({
-			embeds: [
-				new MessageEmbed()
-					.setTitle(`Shut Up, ${member.displayName}`)
-					.setColor("#FF0000")
-					.setDescription(
-						`${restriction.value.message}\nAuto-deletes if ${member.displayName} shuts up for 10 seconds`
-					)
-			]
-		})
-	}
-})
-
-bot.on("voiceStateUpdate", async (_, after) => {
-	if (after.channel) {
-		const cache = await botCache.getGuildCache(after.guild)
-		const restriction = cache.getRestrictions().find(r => r.value.user_id === after.member?.id)
-
-		if (restriction) {
-			after.member?.voice.disconnect()
-		}
-	}
+	GuildCache,
+	BotCache
 })
